@@ -236,6 +236,8 @@ function sid(c){return(c.startsWith('6')?'1.':'0.')+c}
 
 // ===== DATA FETCH =====
 async function fetchBatch(codes,onProgress){
+  // 数字字段清洗：东财对停牌股返回'-'字符串
+  const num=v=>{if(v==null||v===''||v==='-'||isNaN(+v))return null;return +v};
   // 分批请求（每批15个，更稳定）
   const batches=[];for(let i=0;i<codes.length;i+=15)batches.push(codes.slice(i,i+15));
   let all=[];let done=0;
@@ -247,7 +249,7 @@ async function fetchBatch(codes,onProgress){
       const ids=batch.map(c=>sid(c)).join(',');
       const d=await jp('https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f4,f5,f6,f7,f8,f9,f10,f12,f14,f15,f16,f17,f18,f20,f21&secids='+ids,8000);
       if(d?.data?.diff&&d.data.diff.length){
-        all=all.concat(d.data.diff.map(x=>({code:x.f12||'',name:x.f14||'',close:x.f2,pct:x.f3,chg:x.f4,vol:x.f5,amount:x.f6,amp:x.f7,tr:x.f8,pe:x.f9,vr:x.f10,high:x.f15,low:x.f16,open:x.f17,pc:x.f18,mc:x.f20,fc:x.f21})));
+        all=all.concat(d.data.diff.map(x=>({code:x.f12||'',name:x.f14||'',close:num(x.f2),pct:num(x.f3),chg:num(x.f4),vol:num(x.f5),amount:num(x.f6),amp:num(x.f7),tr:num(x.f8),pe:num(x.f9),vr:num(x.f10),high:num(x.f15),low:num(x.f16),open:num(x.f17),pc:num(x.f18),mc:num(x.f20),fc:num(x.f21)})));
         batchSuccess=true;
       }
     }catch(e){console.warn('批量失败，降级单个请求:',e.message)}
@@ -256,7 +258,7 @@ async function fetchBatch(codes,onProgress){
       // 降级: 并行请求（不串行,避免累计超时）
       const promises=batch.map(code=>
         jp('https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&secid='+sid(code)+'&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f116,f162,f170,f168,f169',6000)
-        .then(d=>{if(d?.data){const x=d.data;return{code:x.f57||code,name:x.f58||'',close:x.f43,pct:x.f170,chg:x.f169,vol:x.f47,amount:x.f48,amp:x.f50,tr:0,pe:x.f162,vr:0,high:x.f44,low:x.f45,open:x.f46,pc:x.f60,mc:x.f116,fc:0}}return null})
+        .then(d=>{if(d?.data){const x=d.data;return{code:x.f57||code,name:x.f58||'',close:num(x.f43),pct:num(x.f170),chg:num(x.f169),vol:num(x.f47),amount:num(x.f48),amp:num(x.f50),tr:null,pe:num(x.f162),vr:null,high:num(x.f44),low:num(x.f45),open:num(x.f46),pc:num(x.f60),mc:num(x.f116),fc:null}}return null})
         .catch(e=>{console.warn('单个失败:',code,e.message);return null})
       );
       const results=await Promise.all(promises);
@@ -327,8 +329,12 @@ async function fetchFin(code){
 // ===== STATE =====
 let Q=[],prev={},pollTm=null,polling=false,curD=null,selC=new Set(),curRank='gain';
 const T={realtime:'实时行情',ranking:'涨跌排行榜',dashboard:'总览仪表盘',detail:'公司详情',compare:'横向对比',announce:'最新公告',manage:'管理公司'};
-const fmc=v=>{if(!v||v==='-')return'-';v=+v;if(v>=1e12)return(v/1e12).toFixed(2)+'万亿';if(v>=1e8)return(v/1e8).toFixed(1)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toFixed(2)};
-const fmo=v=>{if(!v)return'-';if(Math.abs(v)>=1e8)return(v/1e8).toFixed(2)+'亿';if(Math.abs(v)>=1e4)return(v/1e4).toFixed(1)+'万';return v.toFixed(2)};
+const fmc=v=>{if(v==null||v===''||v==='-'||isNaN(+v))return'-';v=+v;if(v>=1e12)return(v/1e12).toFixed(2)+'万亿';if(v>=1e8)return(v/1e8).toFixed(1)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toFixed(2)};
+const fmo=v=>{if(v==null||v===''||v==='-'||isNaN(+v))return'-';v=+v;if(Math.abs(v)>=1e8)return(v/1e8).toFixed(2)+'亿';if(Math.abs(v)>=1e4)return(v/1e4).toFixed(1)+'万';return v.toFixed(2)};
+// 安全数字格式化（处理东财返回的'-'等非数字）
+const sn=(v,d)=>{if(v==null||v===''||v==='-'||isNaN(+v))return'-';return(+v).toFixed(d==null?2:d)};
+const snp=(v,d)=>{if(v==null||v===''||v==='-'||isNaN(+v))return'-';const n=+v;return(n>0?'+':'')+n.toFixed(d==null?2:d)+'%'};
+const sn_chg=(v,d)=>{if(v==null||v===''||v==='-'||isNaN(+v))return'-';const n=+v;return(n>0?'+':'')+n.toFixed(d==null?2:d)};
 const cc=v=>v>0?'tg':v<0?'tr':'tm';const cs=v=>v>0?'+':'';
 const rkCls=(i)=>i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
 
@@ -390,7 +396,10 @@ function renderRT(){
     document.getElementById('rt-tb').innerHTML='<tr><td colspan="14"><div class="es"><p>没有找到匹配的公司</p></div></td></tr>';
     return;
   }
-  document.getElementById('rt-tb').innerHTML=s.map(q=>`<tr class="${q._f}" style="cursor:pointer" onclick="openD('${q.code}')"><td class="fm ta">${q.code}</td><td style="font-weight:500;font-size:12px">${q.name}</td><td class="fm ${cc(q.pct)}" style="font-weight:700;font-size:13px">${q.close!=null?q.close.toFixed(2):'-'}</td><td class="fm ${cc(q.pct)}" style="font-weight:600">${q.pct!=null?cs(q.pct)+q.pct.toFixed(2)+'%':'-'}</td><td class="fm ${cc(q.chg)}">${q.chg!=null?cs(q.chg)+q.chg.toFixed(2):'-'}</td><td class="fm">${q.open?.toFixed(2)||'-'}</td><td class="fm tg">${q.high?.toFixed(2)||'-'}</td><td class="fm tr">${q.low?.toFixed(2)||'-'}</td><td class="fm">${q.pc?.toFixed(2)||'-'}</td><td class="fm">${q.vol?(q.vol>1e4?(q.vol/1e4).toFixed(0)+'万':q.vol):'-'}</td><td class="fm">${fmc(q.amount)}</td><td class="fm">${q.tr!=null?q.tr.toFixed(2)+'%':'-'}</td><td class="fm">${q.pe>0?q.pe.toFixed(1):'-'}</td><td class="fm">${fmc(q.mc)}</td></tr>`).join('')
+  document.getElementById('rt-tb').innerHTML=s.map(q=>{
+    const volStr=(q.vol!=null&&!isNaN(+q.vol))?(+q.vol>1e4?(+q.vol/1e4).toFixed(0)+'万':(+q.vol).toFixed(0)):'-';
+    return `<tr class="${q._f}" style="cursor:pointer" onclick="openD('${q.code}')"><td class="fm ta">${q.code}</td><td style="font-weight:500;font-size:12px">${q.name}</td><td class="fm ${cc(q.pct)}" style="font-weight:700;font-size:13px">${sn(q.close)}</td><td class="fm ${cc(q.pct)}" style="font-weight:600">${snp(q.pct)}</td><td class="fm ${cc(q.chg)}">${sn_chg(q.chg)}</td><td class="fm">${sn(q.open)}</td><td class="fm tg">${sn(q.high)}</td><td class="fm tr">${sn(q.low)}</td><td class="fm">${sn(q.pc)}</td><td class="fm">${volStr}</td><td class="fm">${fmc(q.amount)}</td><td class="fm">${q.tr!=null&&!isNaN(+q.tr)?(+q.tr).toFixed(2)+'%':'-'}</td><td class="fm">${q.pe!=null&&+q.pe>0?(+q.pe).toFixed(1):'-'}</td><td class="fm">${fmc(q.mc)}</td></tr>`;
+  }).join('')
 }
 function filterRT(){if(Q.length)renderRT()}
 
