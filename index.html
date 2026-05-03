@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>IVD Monitor v3 - 59家IVD上市公司实时监控</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<style>
+:root{--bg0:#060b18;--bg1:#0d1424;--bg2:#141d2f;--bg3:#1a2740;--bg4:#213050;--bd:#1c2d48;--bd2:#2a3f5f;--t1:#e4eaf5;--t2:#8899b4;--t3:#5a6b86;--ac:#3b82f6;--ac2:#60a5fa;--acg:rgba(59,130,246,.12);--gn:#10b981;--gng:rgba(16,185,129,.1);--rd:#ef4444;--rdg:rgba(239,68,68,.1);--yl:#f59e0b;--ylg:rgba(245,158,11,.1);--pp:#8b5cf6;--sw:200px;--hh:48px;--r:10px;--rs:6px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg0);color:var(--t1);overflow:hidden;height:100vh;font-size:13px}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+.app{display:flex;height:100vh}
+.sb{width:var(--sw);background:var(--bg1);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0}
+.sb-logo{height:var(--hh);display:flex;align-items:center;padding:0 14px;gap:8px;border-bottom:1px solid var(--bd)}
+.sb-logo .ico{width:26px;height:26px;background:linear-gradient(135deg,var(--ac),var(--pp));border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:9px;color:#fff}
+.sb-logo .txt{font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--ac2),var(--pp));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sb-nav{flex:1;padding:6px 5px;overflow-y:auto}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 12px;margin:1px 0;border-radius:var(--rs);cursor:pointer;transition:.2s;color:var(--t2);position:relative;font-size:12px}
+.ni:hover{background:var(--bg3);color:var(--t1)}.ni.on{background:var(--acg);color:var(--ac2)}
+.ni.on::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:16px;background:var(--ac);border-radius:0 3px 3px 0}
+.sb-ft{padding:6px 12px;border-top:1px solid var(--bd);font-size:9px;color:var(--t3);text-align:center;display:flex;align-items:center;justify-content:center;gap:5px}
+.pulse{width:5px;height:5px;background:var(--gn);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.mc{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.hd{height:var(--hh);background:var(--bg1);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 16px;gap:10px}
+.hd-t{font-size:14px;font-weight:600}
+.hd-a{margin-left:auto;display:flex;gap:5px;align-items:center}
+.ct{flex:1;overflow-y:auto;padding:16px}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--bg3);color:var(--t1);font-size:11px;cursor:pointer;transition:.2s;font-family:inherit;white-space:nowrap}
+.btn:hover{border-color:var(--ac)}.btn-p{background:var(--ac);border-color:var(--ac);color:#fff}.btn-p:hover{background:var(--ac2)}
+.btn-s{padding:3px 7px;font-size:10px}.btn-d{border-color:var(--rd);color:var(--rd)}
+.inp{padding:5px 8px;border-radius:var(--rs);border:1px solid var(--bd);background:var(--bg0);color:var(--t1);font-size:11px;outline:none;font-family:inherit}
+.inp:focus{border-color:var(--ac)}
+select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%235a6b86' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center;padding-right:18px}
+.cd{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px}
+.cd-t{font-size:10px;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.cd-v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.si{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:6px}
+.si.bl{background:var(--acg)}.si.gn{background:var(--gng)}.si.rd{background:var(--rdg)}.si.yl{background:var(--ylg)}
+table.dt{width:100%;border-collapse:collapse}
+.dt th{text-align:left;padding:6px 8px;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--bd);font-weight:500;white-space:nowrap;position:sticky;top:0;background:var(--bg2);z-index:1}
+.dt td{padding:6px 8px;border-bottom:1px solid var(--bd);white-space:nowrap}
+.dt tbody tr{transition:.1s}.dt tbody tr:hover{background:var(--bg3)}
+.tg{color:var(--gn)}.tr{color:var(--rd)}.tm{color:var(--t3)}.ta{color:var(--ac2)}.ty{color:var(--yl)}
+.fm{font-variant-numeric:tabular-nums;font-family:"SF Mono",Consolas,monospace;font-size:11px}
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;background:var(--acg);color:var(--ac2)}
+.tag-g{background:var(--gng);color:var(--gn)}.tag-r{background:var(--rdg);color:var(--rd)}.tag-y{background:var(--ylg);color:var(--yl)}
+.cc{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:12px;margin-bottom:12px}
+.cb-h{width:100%;height:300px}.cb-s{width:100%;height:220px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.st{font-size:14px;font-weight:600}
+.es{text-align:center;padding:30px 16px;color:var(--t3)}
+.pg{display:none;animation:fi .2s ease}.pg.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.ld{display:flex;align-items:center;justify-content:center;padding:24px;color:var(--t3)}
+.sp{width:14px;height:14px;border:2px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .7s linear infinite;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flG{0%{background:rgba(16,185,129,.15)}100%{background:transparent}}
+@keyframes flR{0%{background:rgba(239,68,68,.15)}100%{background:transparent}}
+.fu{animation:flG .4s ease}.fd{animation:flR .4s ease}
+.tabs{display:flex;gap:2px;margin-bottom:12px;border-bottom:1px solid var(--bd)}
+.tab{padding:6px 12px;cursor:pointer;color:var(--t2);border-bottom:2px solid transparent;transition:.2s;font-size:12px}
+.tab:hover{color:var(--t1)}.tab.on{color:var(--ac2);border-bottom-color:var(--ac)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100}
+.md{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:18px;min-width:320px;max-width:480px;max-height:80vh;overflow-y:auto}
+.md-t{font-size:15px;font-weight:600;margin-bottom:12px}
+.md-a{display:flex;gap:5px;justify-content:flex-end;margin-top:12px}
+.cbi{display:flex;flex-wrap:wrap;gap:5px}
+.cb{padding:4px 8px;border:1px solid var(--bd);border-radius:var(--rs);cursor:pointer;font-size:11px;transition:.2s}
+.cb:hover{border-color:var(--ac)}.cb.sel{background:var(--acg);border-color:var(--ac);color:var(--ac2)}
+.ch{display:flex;align-items:center;gap:14px;padding:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px}
+.rank-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:10px;font-weight:700}
+.rank-1{background:#ffd700;color:#000}.rank-2{background:#c0c0c0;color:#000}.rank-3{background:#cd7f32;color:#fff}
+.rank-n{background:var(--bg4);color:var(--t2)}
+.ann-item{padding:12px 14px;border-bottom:1px solid var(--bd);transition:.15s;cursor:pointer}
+.ann-item:hover{background:var(--bg3);padding-left:18px}
+.ann-title{font-size:13px;font-weight:500;margin-bottom:4px;line-height:1.4}
+.ann-meta{font-size:10px;color:var(--t3);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ann-code{color:var(--ac2);font-family:"SF Mono",Consolas,monospace}
+.ann-date{color:var(--t3)}
+.ann-type-tag{padding:1px 5px;border-radius:3px;font-size:9px}
+.ann-type-年报,.ann-type-半年报,.ann-type-季报{background:var(--acg);color:var(--ac2)}
+.ann-type-业绩{background:var(--ylg);color:var(--yl)}
+.ann-type-分红{background:var(--gng);color:var(--gn)}
+.ann-type-增减持{background:rgba(139,92,246,.12);color:var(--pp)}
+.ann-type-治理{background:var(--bg4);color:var(--t2)}
+.ann-type-融资{background:rgba(6,182,212,.1);color:#06b6d4}
+.ann-type-经营{background:var(--gng);color:var(--gn)}
+.ann-type-风险{background:var(--rdg);color:var(--rd)}
+.ann-type-其他{background:var(--bg4);color:var(--t2)}
+.brand-bar{height:40px;background:linear-gradient(90deg,#1a2740 0%,#213050 50%,#1a2740 100%);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:center;gap:14px;position:relative;overflow:hidden}
+.brand-bar::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(59,130,246,.08),transparent);animation:shimmer 4s infinite}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.brand-title{font-size:14px;font-weight:700;background:linear-gradient(135deg,#60a5fa 0%,#8b5cf6 50%,#f59e0b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;position:relative;z-index:1}
+.brand-sub{font-size:11px;color:var(--t2);letter-spacing:1px;position:relative;z-index:1}
+.brand-sub::before{content:'';display:inline-block;width:1px;height:14px;background:var(--bd2);margin-right:12px;vertical-align:middle}
+.app{height:calc(100vh - 40px)}
+@media(max-width:1100px){.g2{grid-template-columns:1fr}.sg{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="brand-bar">
+<img src="data:image/png;base64,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" alt="老刘话IVD" style="height:26px;width:auto;display:block;position:relative;z-index:1">
+<span class="brand-sub">老刘出品 · 严谨销售</span>
+</div>
+<div class="app">
+<aside class="sb">
+<div class="sb-logo"><div class="ico">IV</div><div class="txt">IVD Monitor</div></div>
+<nav class="sb-nav">
+<div class="ni on" data-p="realtime" onclick="nav('realtime')"><span>⚡</span>实时行情</div>
+<div class="ni" data-p="ranking" onclick="nav('ranking')"><span>🏆</span>涨跌排行</div>
+<div class="ni" data-p="dashboard" onclick="nav('dashboard')"><span>📊</span>总览</div>
+<div class="ni" data-p="detail" onclick="nav('detail')" style="display:none" id="nav-detail"><span>📄</span>详情</div>
+<div class="ni" data-p="compare" onclick="nav('compare')"><span>⚖️</span>对比</div>
+<div class="ni" data-p="announce" onclick="nav('announce')"><span>📢</span>公告</div>
+<div class="ni" data-p="manage" onclick="nav('manage')"><span>⚙️</span>管理</div>
+</nav>
+<div class="sb-ft"><span class="pulse"></span>v3.0 · 59家IVD</div>
+</aside>
+<main class="mc">
+<header class="hd">
+<h1 class="hd-t" id="pt">实时行情</h1>
+<div class="hd-a">
+<input class="inp" id="rt-search" placeholder="🔍 搜索公司/代码..." style="width:160px" oninput="filterRT()">
+<span id="rt-st" class="tag">准备中</span>
+<span id="rt-tm" style="font-size:10px;color:var(--t3)"></span>
+<select class="inp" id="rt-iv" onchange="chgIv()" style="width:65px"><option value="3000">3秒</option><option value="5000" selected>5秒</option><option value="10000">10秒</option></select>
+<button class="btn btn-p" id="rt-btn" onclick="togPoll()">▶ 开始</button>
+<button class="btn" onclick="fetchOnce()">🔄 刷新</button>
+</div>
+</header>
+<div class="ct">
+<!-- REALTIME -->
+<div class="pg on" id="p-realtime"><div class="sg" id="rt-stats"></div><div class="cd" style="padding:0;overflow:auto;max-height:calc(100vh - 200px)"><table class="dt"><thead><tr><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>涨跌额</th><th>今开</th><th>最高</th><th>最低</th><th>昨收</th><th>成交量</th><th>成交额</th><th>换手率</th><th>PE</th><th>总市值</th></tr></thead><tbody id="rt-tb"><tr><td colspan="14"><div class="ld"><div class="sp"></div>点击"开始"或"刷新"获取59家IVD公司真实行情...</div></td></tr></tbody></table></div></div>
+<!-- RANKING -->
+<div class="pg" id="p-ranking">
+<div class="sh"><span class="st">🏆 涨跌排行榜</span>
+<div style="display:flex;gap:4px"><button class="btn btn-s btn-p" id="rk-gain" onclick="showRank('gain')">涨幅榜</button><button class="btn btn-s" id="rk-loss" onclick="showRank('loss')">跌幅榜</button><button class="btn btn-s" id="rk-vol" onclick="showRank('vol')">成交量榜</button><button class="btn btn-s" id="rk-tr" onclick="showRank('tr')">换手率榜</button><button class="btn btn-s" id="rk-mc" onclick="showRank('mc')">市值榜</button></div>
+</div>
+<div class="g2" id="rk-charts" style="margin-bottom:14px"><div class="cc"><div id="rk-chart1" class="cb-s"></div></div><div class="cc"><div id="rk-chart2" class="cb-s"></div></div></div>
+<div class="cd" style="padding:0;overflow:auto;max-height:calc(100vh - 340px)"><table class="dt"><thead><tr><th>#</th><th>代码</th><th>名称</th><th>最新价</th><th>涨跌幅</th><th>涨跌额</th><th>成交量</th><th>成交额</th><th>换手率</th><th>市值</th></tr></thead><tbody id="rk-tb"></tbody></table></div>
+</div>
+<!-- DASHBOARD -->
+<div class="pg" id="p-dashboard"><div class="sg" id="ds-stats"></div><div class="g2"><div class="cc"><div class="sh"><span class="st">📈 涨幅TOP10</span></div><div id="t-gain"></div></div><div class="cc"><div class="sh"><span class="st">📉 跌幅TOP10</span></div><div id="t-loss"></div></div></div><div class="cc"><div class="sh"><span class="st">🗺️ 市值分布</span></div><div id="mc-ch" class="cb-h"></div></div></div>
+<!-- DETAIL -->
+<div class="pg" id="p-detail"><div style="margin-bottom:8px"><button class="btn btn-s" onclick="nav('realtime')">← 返回</button></div><div class="ch" id="d-hd"></div><div class="tabs"><div class="tab on" onclick="loadK()">K线图</div><div class="tab" onclick="loadFin()">财务数据</div><div class="tab" onclick="loadAnnDetail()">公告</div></div><div id="d-ct"></div></div>
+<!-- COMPARE -->
+<div class="pg" id="p-compare"><div class="sh"><span class="st">选择对比公司（2-6家）</span><button class="btn btn-p" onclick="runCmp()">📊 对比</button></div><div class="cbi" id="cmp-cb" style="margin-bottom:14px"></div><div id="cmp-r"></div></div>
+<!-- ANNOUNCE -->
+<div class="pg" id="p-announce">
+<div class="sh">
+<span class="st">📢 最新公告</span>
+<div style="display:flex;gap:5px;align-items:center">
+<input class="inp" id="ann-search" placeholder="搜索公司名称..." style="width:160px" oninput="filterAnn()">
+<select class="inp" id="ann-type" onchange="filterAnn()" style="width:100px">
+<option value="">全部类型</option>
+<option value="年报">年报</option>
+<option value="半年报">半年报</option>
+<option value="季报">季报</option>
+<option value="业绩">业绩预告</option>
+<option value="分红">分红</option>
+<option value="增减持">增减持</option>
+<option value="治理">公司治理</option>
+<option value="融资">融资</option>
+<option value="经营">经营</option>
+<option value="风险">风险</option>
+</select>
+<button class="btn btn-p" onclick="loadAnnounce()">🔄 获取</button>
+</div>
+</div>
+<div id="ann-list"><div class="ld"><div class="sp"></div>点击"获取"加载最新公告...</div></div>
+</div>
+<!-- MANAGE -->
+<div class="pg" id="p-manage"><div class="sh"><span class="st">管理监控公司（当前<span id="mg-cnt">0</span>家）<span id="mg-tip" style="font-size:11px;color:var(--t3);margin-left:8px"></span></span><div style="display:flex;gap:5px"><input class="inp" id="mg-search" placeholder="🔍 搜索..." style="width:140px" oninput="renderMg()"><button class="btn" onclick="showAdd()">➕ 添加</button><button class="btn" onclick="exportStocks()">📤 导出</button><button class="btn" onclick="importStocks()">📥 导入</button><button class="btn btn-d" onclick="resetStocks()">🔄 恢复默认</button></div></div><div style="font-size:11px;color:var(--yl);background:var(--ylg);padding:8px 12px;border-radius:6px;margin-bottom:10px">💡 公司列表保存在浏览器本地(localStorage)。建议定期点"导出备份"保存JSON文件，防止清理浏览器数据时丢失。不同浏览器、无痕模式之间数据不互通。</div><div class="cd" style="padding:0;overflow:auto;max-height:calc(100vh - 220px)"><table class="dt"><thead><tr><th>代码</th><th>名称</th><th>领域</th><th>操作</th></tr></thead><tbody id="mg-tb"></tbody></table></div></div>
+</div></main></div>
+<div id="modal"></div>
+<script>
+// ===== 59家IVD上市公司完整清单 =====
+const DEF=[
+{c:'300760',n:'迈瑞医疗',s:'综合IVD'},{c:'300244',n:'迪安诊断',s:'第三方检验'},{c:'603108',n:'润达医疗',s:'IVD流通'},{c:'603882',n:'金域医学',s:'第三方检验'},
+{c:'300298',n:'三诺生物',s:'POCT血糖'},{c:'300832',n:'新产业',s:'化学发光'},{c:'603658',n:'安图生物',s:'化学发光'},{c:'300676',n:'华大基因',s:'基因测序'},
+{c:'688114',n:'华大智造',s:'基因测序仪'},{c:'300482',n:'万孚生物',s:'POCT'},{c:'300463',n:'迈克生物',s:'化学发光'},{c:'688389',n:'诺禾致源',s:'基因测序服务'},
+{c:'603392',n:'万泰生物',s:'免疫诊断'},{c:'300206',n:'理邦仪器',s:'医疗设备'},{c:'688575',n:'亚辉龙',s:'化学发光'},{c:'688289',n:'圣湘生物',s:'分子诊断'},
+{c:'002022',n:'科华生物',s:'体外诊断'},{c:'300439',n:'美康生物',s:'生化诊断'},{c:'301060',n:'兰卫医学',s:'第三方检验'},{c:'002432',n:'九安医疗',s:'POCT'},
+{c:'300406',n:'九强生物',s:'生化诊断'},{c:'688105',n:'诺唯赞',s:'生物试剂'},{c:'300685',n:'艾德生物',s:'分子诊断'},{c:'603716',n:'塞力医疗',s:'IVD流通'},
+{c:'603033',n:'拱东医疗',s:'采血耗材'},{c:'688687',n:'优宁维',s:'生物试剂'},{c:'688590',n:'普门科技',s:'体外诊断'},{c:'300796',n:'基蛋生物',s:'POCT'},
+{c:'000710',n:'贝瑞基因',s:'基因测序'},{c:'688298',n:'东方生物',s:'POCT'},{c:'688690',n:'纳微科技',s:'色谱填料'},{c:'688606',n:'奥泰生物',s:'POCT'},
+{c:'300318',n:'博晖创新',s:'微量元素'},{c:'688506',n:'百普赛斯',s:'蛋白试剂'},{c:'301047',n:'义翘神州',s:'蛋白试剂'},{c:'002030',n:'达安基因',s:'分子诊断'},
+{c:'300639',n:'凯普生物',s:'分子诊断'},{c:'300396',n:'迪瑞医疗',s:'尿液诊断'},{c:'300030',n:'阳普医疗',s:'采血系统'},{c:'688047',n:'英诺特',s:'POCT'},
+{c:'688075',n:'安旭生物',s:'POCT'},{c:'688068',n:'热景生物',s:'分子诊断'},{c:'300109',n:'博拓生物',s:'POCT原料'},{c:'688656',n:'浩欧博',s:'过敏诊断'},
+{c:'688468',n:'科美诊断',s:'化学发光'},{c:'688399',n:'硕世生物',s:'分子诊断'},{c:'300642',n:'透景生命',s:'肿瘤诊断'},{c:'688393',n:'安必平',s:'细胞诊断'},
+{c:'300289',n:'利德曼',s:'生化诊断'},{c:'002932',n:'明德生物',s:'POCT'},{c:'688338',n:'赛科希德',s:'凝血诊断'},{c:'688686',n:'易瑞生物',s:'POCT'},
+{c:'688516',n:'爱威科技',s:'尿液诊断'},{c:'688426',n:'康为世纪',s:'分子诊断'},{c:'688217',n:'睿昂基因',s:'分子诊断'},{c:'688193',n:'仁度生物',s:'分子诊断'},
+{c:'688137',n:'近岸蛋白',s:'蛋白试剂'},{c:'688317',n:'之江生物',s:'分子诊断'},{c:'688622',n:'禾信仪器',s:'质谱仪器'}
+];
+// ===== 数据持久化（带错误处理和兼容旧版） =====
+function loadStocks(){
+  try{
+    // 优先读v3键，兼容旧版ivd_stocks键
+    const raw=localStorage.getItem('ivd3')||localStorage.getItem('ivd_stocks');
+    if(raw){
+      const arr=JSON.parse(raw);
+      if(Array.isArray(arr)&&arr.length>0)return arr;
+    }
+  }catch(e){console.warn('读取保存的公司列表失败:',e)}
+  return [...DEF]; // 返回默认值的副本
+}
+function saveStocks(){
+  try{
+    localStorage.setItem('ivd3',JSON.stringify(stocks));
+    return true;
+  }catch(e){
+    console.error('保存失败:',e);
+    alert('⚠️ 保存失败！可能是浏览器localStorage被禁用。\n\n请尝试：\n1. 不要用无痕/隐私模式打开\n2. 允许浏览器保存网站数据\n3. 或使用"导出"功能手动备份');
+    return false;
+  }
+}
+let stocks=loadStocks();
+
+// ===== JSONP =====
+let _jc=0;
+function jp(url,timeout){return new Promise((ok,no)=>{
+  const nm='jQuery'+(Date.now())+'_'+(++_jc);
+  const s=document.createElement('script');s.charset='utf-8';
+  const to=setTimeout(()=>{cl();no(new Error('timeout after '+(timeout||8000)+'ms'))},timeout||8000);
+  function cl(){clearTimeout(to);try{delete window[nm]}catch(e){}try{s.parentNode&&s.parentNode.removeChild(s)}catch(e){}}
+  window[nm]=d=>{cl();ok(d)};
+  s.src=url+(url.includes('?')?'&':'?')+'cb='+nm;
+  s.onerror=()=>{cl();no(new Error('script_load_error'))};
+  document.head.appendChild(s);
+})}
+function sid(c){return(c.startsWith('6')?'1.':'0.')+c}
+
+// ===== DATA FETCH =====
+async function fetchBatch(codes,onProgress){
+  // 分批请求（每批15个，更稳定）
+  const batches=[];for(let i=0;i<codes.length;i+=15)batches.push(codes.slice(i,i+15));
+  let all=[];let done=0;
+  const total=codes.length;
+
+  for(const batch of batches){
+    let batchSuccess=false;
+    try{
+      const ids=batch.map(c=>sid(c)).join(',');
+      const d=await jp('https://push2.eastmoney.com/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f4,f5,f6,f7,f8,f9,f10,f12,f14,f15,f16,f17,f18,f20,f21&secids='+ids,8000);
+      if(d?.data?.diff&&d.data.diff.length){
+        all=all.concat(d.data.diff.map(x=>({code:x.f12||'',name:x.f14||'',close:x.f2,pct:x.f3,chg:x.f4,vol:x.f5,amount:x.f6,amp:x.f7,tr:x.f8,pe:x.f9,vr:x.f10,high:x.f15,low:x.f16,open:x.f17,pc:x.f18,mc:x.f20,fc:x.f21})));
+        batchSuccess=true;
+      }
+    }catch(e){console.warn('批量失败，降级单个请求:',e.message)}
+
+    if(!batchSuccess){
+      // 降级: 并行请求（不串行,避免累计超时）
+      const promises=batch.map(code=>
+        jp('https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&secid='+sid(code)+'&fields=f43,f44,f45,f46,f47,f48,f50,f57,f58,f60,f116,f162,f170,f168,f169',6000)
+        .then(d=>{if(d?.data){const x=d.data;return{code:x.f57||code,name:x.f58||'',close:x.f43,pct:x.f170,chg:x.f169,vol:x.f47,amount:x.f48,amp:x.f50,tr:0,pe:x.f162,vr:0,high:x.f44,low:x.f45,open:x.f46,pc:x.f60,mc:x.f116,fc:0}}return null})
+        .catch(e=>{console.warn('单个失败:',code,e.message);return null})
+      );
+      const results=await Promise.all(promises);
+      results.filter(x=>x).forEach(r=>all.push(r));
+    }
+
+    done+=batch.length;
+    if(onProgress)onProgress(done,total,all.length);
+    if(batches.length>1)await new Promise(r=>setTimeout(r,200));
+  }
+  return all.length?all:null;
+}
+
+async function fetchK(code,klt=101,lmt=120){
+  try{const d=await jp('https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+sid(code)+'&klt='+klt+'&fqt=1&lmt='+lmt+'&end=20500101&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61');
+  if(d?.data?.klines)return d.data.klines.map(l=>{const p=l.split(',');return{d:p[0],o:+p[1],c:+p[2],h:+p[3],l:+p[4],v:+p[5],a:+p[6],pct:+p[8]}});
+  }catch(e){console.error('K线:',e)}return[]}
+
+// 财务数据 - 东方财富个股财务摘要接口(JSONP)
+async function fetchFin(code){
+  // 方案1: datacenter_v3 JSONP接口 (与push2同源，已验证支持JSONP)
+  try{
+    const d=await jp('https://datacenter.eastmoney.com/api/data/v1/get?reportName=RPT_LICO_FN_CPD&columns=ALL&quoteColumns=&filter=(SECURITY_CODE%3D%22'+code+'%22)&pageNumber=1&pageSize=8&sortTypes=-1&sortColumns=REPORT_DATE');
+    if(d?.result?.data)return d.result.data.map(x=>({p:(x.REPORT_DATE||'').substring(0,10),rev:x.TOTAL_OPERATE_INCOME||0,np:x.PARENT_NETPROFIT||0,gm:x.GROSS_PROFIT_RATIO!=null?x.GROSS_PROFIT_RATIO:null,roe:x.ROE_WEIGHT!=null?x.ROE_WEIGHT:null,dr:x.DEBT_ASSET_RATIO!=null?x.DEBT_ASSET_RATIO:null,ry:x.TOI_YOY_RATIO!=null?x.TOI_YOY_RATIO:null,py:x.PARENT_NETPROFIT_YOY_RATIO!=null?x.PARENT_NETPROFIT_YOY_RATIO:null}));
+  }catch(e){console.warn('方案1(datacenter):',e.message)}
+
+  // 方案2: push2主站 个股财务快照 (和行情同域名，一定能跨域)
+  try{
+    const secid=sid(code);
+    // 通过行情接口的扩展字段获取基础财务数据
+    const d=await jp('https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&secid='+secid+'&fields=f57,f58,f84,f85,f116,f117,f162,f167,f173,f183,f184,f185,f186,f187,f188,f189,f190,f191');
+    if(d?.data){
+      const x=d.data;
+      // 这里只能获取最新一期的基础数据,我们构造单行记录
+      if(x.f183||x.f185){
+        return [{
+          p:'最新报告期',
+          rev:x.f183||0,  // 营业总收入
+          np:x.f185||0,   // 归母净利润
+          gm:x.f186!=null?x.f186:null, // 毛利率
+          roe:x.f188!=null?x.f188:null, // ROE
+          dr:x.f189!=null?x.f189:null,  // 资产负债率
+          ry:x.f190!=null?x.f190:null,  // 营收同比
+          py:x.f191!=null?x.f191:null   // 利润同比
+        }];
+      }
+    }
+  }catch(e2){console.warn('方案2(push2):',e2.message)}
+
+  // 方案3: 用iframe嵌入东方财富页面,通过postMessage提取 - 不可行
+  // 方案3替代: 尝试新版datacenter地址
+  try{
+    const d=await jp('https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_LICO_FN_CPD&columns=REPORT_DATE,SECURITY_CODE,TOTAL_OPERATE_INCOME,PARENT_NETPROFIT,GROSS_PROFIT_RATIO,ROE_WEIGHT,DEBT_ASSET_RATIO,TOI_YOY_RATIO,PARENT_NETPROFIT_YOY_RATIO&filter=(SECURITY_CODE%3D%22'+code+'%22)&pageNumber=1&pageSize=8&sortTypes=-1&sortColumns=REPORT_DATE&source=WEB&client=WEB');
+    if(d?.result?.data)return d.result.data.map(x=>({p:(x.REPORT_DATE||'').substring(0,10),rev:x.TOTAL_OPERATE_INCOME||0,np:x.PARENT_NETPROFIT||0,gm:x.GROSS_PROFIT_RATIO!=null?x.GROSS_PROFIT_RATIO:null,roe:x.ROE_WEIGHT!=null?x.ROE_WEIGHT:null,dr:x.DEBT_ASSET_RATIO!=null?x.DEBT_ASSET_RATIO:null,ry:x.TOI_YOY_RATIO!=null?x.TOI_YOY_RATIO:null,py:x.PARENT_NETPROFIT_YOY_RATIO!=null?x.PARENT_NETPROFIT_YOY_RATIO:null}));
+  }catch(e3){console.warn('方案3(datacenter-web):',e3.message)}
+
+  // 方案4: 通过CORS代理(公共)
+  try{
+    const url='https://datacenter.eastmoney.com/securities/api/data/get?type=RPT_LICO_FN_CPD&sty=ALL&filter=(SECURITY_CODE=%22'+code+'%22)&p=1&ps=8&sr=-1,1&st=REPORT_DATE';
+    const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url),{timeout:12000});
+    const j=await r.json();
+    if(j?.result?.data)return j.result.data.map(x=>({p:(x.REPORT_DATE||'').substring(0,10),rev:x.TOTAL_OPERATE_INCOME||0,np:x.PARENT_NETPROFIT||0,gm:x.GROSS_PROFIT_RATIO!=null?x.GROSS_PROFIT_RATIO:null,roe:x.ROE_WEIGHT!=null?x.ROE_WEIGHT:null,dr:x.DEBT_ASSET_RATIO!=null?x.DEBT_ASSET_RATIO:null,ry:x.TOI_YOY_RATIO!=null?x.TOI_YOY_RATIO:null,py:x.PARENT_NETPROFIT_YOY_RATIO!=null?x.PARENT_NETPROFIT_YOY_RATIO:null}));
+  }catch(e4){console.warn('方案4(CORS代理):',e4.message)}
+
+  return[];
+}
+
+// ===== STATE =====
+let Q=[],prev={},pollTm=null,polling=false,curD=null,selC=new Set(),curRank='gain';
+const T={realtime:'实时行情',ranking:'涨跌排行榜',dashboard:'总览仪表盘',detail:'公司详情',compare:'横向对比',announce:'最新公告',manage:'管理公司'};
+const fmc=v=>{if(!v||v==='-')return'-';v=+v;if(v>=1e12)return(v/1e12).toFixed(2)+'万亿';if(v>=1e8)return(v/1e8).toFixed(1)+'亿';if(v>=1e4)return(v/1e4).toFixed(0)+'万';return v.toFixed(2)};
+const fmo=v=>{if(!v)return'-';if(Math.abs(v)>=1e8)return(v/1e8).toFixed(2)+'亿';if(Math.abs(v)>=1e4)return(v/1e4).toFixed(1)+'万';return v.toFixed(2)};
+const cc=v=>v>0?'tg':v<0?'tr':'tm';const cs=v=>v>0?'+':'';
+const rkCls=(i)=>i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+
+function nav(p){document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));document.querySelectorAll('.ni').forEach(e=>e.classList.remove('on'));document.getElementById('p-'+p)?.classList.add('on');document.querySelector(`.ni[data-p="${p}"]`)?.classList.add('on');document.getElementById('pt').textContent=T[p]||'';if(p==='dashboard')renderDash();if(p==='compare')loadCmp();if(p==='manage')renderMg();if(p==='ranking')showRank(curRank);if(p==='announce')loadAnnounce()}
+
+// ===== REALTIME =====
+async function fetchOnce(){
+  const codes=stocks.map(s=>s.c);if(!codes.length){
+    document.getElementById('rt-st').textContent='⚠️ 公司列表为空';
+    document.getElementById('rt-st').className='tag tag-y';
+    document.getElementById('rt-tb').innerHTML='<tr><td colspan="14"><div class="es"><p>请先到"管理"页面添加监控公司</p></div></td></tr>';
+    return;
+  }
+  document.getElementById('rt-st').textContent='请求中...';document.getElementById('rt-st').className='tag-y tag';
+  document.getElementById('rt-tb').innerHTML='<tr><td colspan="14"><div class="ld"><div class="sp"></div>正在获取'+codes.length+'家公司行情...</div></td></tr>';
+
+  const tbody=document.getElementById('rt-tb');
+  const onProgress=(done,total,got)=>{
+    tbody.innerHTML='<tr><td colspan="14"><div class="ld"><div class="sp"></div>已查询 '+done+'/'+total+' 家，已获取 '+got+' 条数据...</div></td></tr>';
+  };
+
+  // 总体超时保护：60秒（每批15个,大概4-5批,够用）
+  let r=null;
+  try{
+    r=await Promise.race([
+      fetchBatch(codes,onProgress),
+      new Promise((_,rj)=>setTimeout(()=>rj(new Error('总超时60秒')),60000))
+    ]);
+  }catch(e){
+    console.error('fetchOnce失败:',e);
+    document.getElementById('rt-st').textContent='❌ '+e.message;
+    document.getElementById('rt-st').className='tag-r tag';
+    tbody.innerHTML='<tr><td colspan="14"><div class="es"><p style="font-size:14px;margin-bottom:8px">⚠️ 数据获取失败</p><p style="font-size:11px;margin-bottom:4px">错误：'+e.message+'</p><p style="font-size:11px;color:var(--yl)">可能原因：</p><p style="font-size:11px">1. 网络问题或东方财富API临时不可用</p><p style="font-size:11px">2. 在Claude预览窗口里打开（请下载到本地或用GitHub Pages部署）</p><p style="font-size:11px">3. 浏览器拦截了第三方脚本，请尝试关闭广告拦截插件</p><p style="margin-top:10px"><button class="btn btn-p btn-s" onclick="fetchOnce()">🔄 重试</button></p></div></td></tr>';
+    document.getElementById('rt-tm').textContent=new Date().toLocaleTimeString('zh-CN');
+    return;
+  }
+
+  if(r&&r.length){
+    r.forEach(q=>{const p=prev[q.code];q._f=p&&p!==q.close?(q.close>p?'fu':'fd'):'';prev[q.code]=q.close});
+    Q=r;renderRT();renderRTStats();
+    const missing=codes.length-r.length;
+    document.getElementById('rt-st').textContent='✅ '+r.length+'/'+codes.length+' 家'+(missing>0?'(缺'+missing+')':'');
+    document.getElementById('rt-st').className='tag-g tag';
+  }else{
+    document.getElementById('rt-st').textContent='❌ 无数据';document.getElementById('rt-st').className='tag-r tag';
+    tbody.innerHTML='<tr><td colspan="14"><div class="es"><p>⚠️ 接口未返回数据</p><p style="font-size:11px;margin-top:6px;color:var(--yl)">请确认是在本地浏览器或GitHub Pages打开（不是Claude预览窗口）</p><p style="margin-top:10px"><button class="btn btn-p btn-s" onclick="fetchOnce()">🔄 重试</button></p></div></td></tr>';
+  }
+  document.getElementById('rt-tm').textContent=new Date().toLocaleTimeString('zh-CN');
+}
+function renderRTStats(){if(!Q.length)return;const u=Q.filter(q=>q.pct>0).length,d=Q.filter(q=>q.pct<0).length,tm=Q.reduce((s,q)=>s+(q.mc||0),0),ps=Q.filter(q=>q.pe>0),ap=ps.length?(ps.reduce((s,q)=>s+q.pe,0)/ps.length).toFixed(1):'-';
+document.getElementById('rt-stats').innerHTML=`<div class="cd"><div class="si bl">🏢</div><div class="cd-t">公司数</div><div class="cd-v">${Q.length}</div></div><div class="cd"><div class="si gn">💰</div><div class="cd-t">总市值</div><div class="cd-v">${fmc(tm)}</div></div><div class="cd"><div class="si yl">📈</div><div class="cd-t">均PE</div><div class="cd-v">${ap}</div></div><div class="cd"><div class="si gn">📊</div><div class="cd-t">涨/跌</div><div class="cd-v"><span class="tg">${u}</span>/<span class="tr">${d}</span></div></div>`}
+function renderRT(){
+  const search=(document.getElementById('rt-search')?.value||'').toLowerCase().trim();
+  let s=[...Q].sort((a,b)=>(b.pct||0)-(a.pct||0));
+  if(search){
+    s=s.filter(q=>(q.code||'').toLowerCase().includes(search)||(q.name||'').toLowerCase().includes(search));
+  }
+  if(!s.length){
+    document.getElementById('rt-tb').innerHTML='<tr><td colspan="14"><div class="es"><p>没有找到匹配的公司</p></div></td></tr>';
+    return;
+  }
+  document.getElementById('rt-tb').innerHTML=s.map(q=>`<tr class="${q._f}" style="cursor:pointer" onclick="openD('${q.code}')"><td class="fm ta">${q.code}</td><td style="font-weight:500;font-size:12px">${q.name}</td><td class="fm ${cc(q.pct)}" style="font-weight:700;font-size:13px">${q.close!=null?q.close.toFixed(2):'-'}</td><td class="fm ${cc(q.pct)}" style="font-weight:600">${q.pct!=null?cs(q.pct)+q.pct.toFixed(2)+'%':'-'}</td><td class="fm ${cc(q.chg)}">${q.chg!=null?cs(q.chg)+q.chg.toFixed(2):'-'}</td><td class="fm">${q.open?.toFixed(2)||'-'}</td><td class="fm tg">${q.high?.toFixed(2)||'-'}</td><td class="fm tr">${q.low?.toFixed(2)||'-'}</td><td class="fm">${q.pc?.toFixed(2)||'-'}</td><td class="fm">${q.vol?(q.vol>1e4?(q.vol/1e4).toFixed(0)+'万':q.vol):'-'}</td><td class="fm">${fmc(q.amount)}</td><td class="fm">${q.tr!=null?q.tr.toFixed(2)+'%':'-'}</td><td class="fm">${q.pe>0?q.pe.toFixed(1):'-'}</td><td class="fm">${fmc(q.mc)}</td></tr>`).join('')
+}
+function filterRT(){if(Q.length)renderRT()}
+
+function togPoll(){polling?stopP():startP()}
+function startP(){polling=true;const iv=+document.getElementById('rt-iv').value||5000;document.getElementById('rt-btn').innerHTML='⏸ 停止';document.getElementById('rt-btn').className='btn btn-d';fetchOnce();pollTm=setInterval(fetchOnce,iv)}
+function stopP(){polling=false;if(pollTm){clearInterval(pollTm);pollTm=null}document.getElementById('rt-btn').innerHTML='▶ 开始';document.getElementById('rt-btn').className='btn btn-p';document.getElementById('rt-st').textContent='已停止';document.getElementById('rt-st').className='tag tag-r'}
+function chgIv(){if(polling){stopP();startP()}}
+
+// ===== RANKING =====
+function showRank(type){
+  if(!Q.length){document.getElementById('rk-tb').innerHTML='<tr><td colspan="10"><div class="es"><p>请先获取行情数据</p></div></td></tr>';return}
+  curRank=type;
+  document.querySelectorAll('[id^="rk-"]').forEach(el=>{if(el.tagName==='BUTTON'){el.className='btn btn-s';if(el.id==='rk-'+type)el.classList.add('btn-p')}});
+  let sorted;
+  if(type==='gain')sorted=[...Q].sort((a,b)=>(b.pct||0)-(a.pct||0));
+  else if(type==='loss')sorted=[...Q].sort((a,b)=>(a.pct||0)-(b.pct||0));
+  else if(type==='vol')sorted=[...Q].sort((a,b)=>(b.amount||0)-(a.amount||0));
+  else if(type==='tr')sorted=[...Q].sort((a,b)=>(b.tr||0)-(a.tr||0));
+  else if(type==='mc')sorted=[...Q].sort((a,b)=>(b.mc||0)-(a.mc||0));
+  else sorted=[...Q];
+
+  document.getElementById('rk-tb').innerHTML=sorted.map((q,i)=>`<tr style="cursor:pointer" onclick="openD('${q.code}')">
+    <td><span class="rank-num ${rkCls(i)}">${i+1}</span></td>
+    <td class="fm ta">${q.code}</td><td style="font-weight:500">${q.name}</td>
+    <td class="fm" style="font-weight:600">${q.close?.toFixed(2)||'-'}</td>
+    <td class="fm ${cc(q.pct)}" style="font-weight:700">${q.pct!=null?cs(q.pct)+q.pct.toFixed(2)+'%':'-'}</td>
+    <td class="fm ${cc(q.chg)}">${q.chg!=null?cs(q.chg)+q.chg.toFixed(2):'-'}</td>
+    <td class="fm">${q.vol?(q.vol>1e4?(q.vol/1e4).toFixed(0)+'万':q.vol):'-'}</td>
+    <td class="fm">${fmc(q.amount)}</td>
+    <td class="fm">${q.tr!=null?q.tr.toFixed(2)+'%':'-'}</td>
+    <td class="fm">${fmc(q.mc)}</td>
+  </tr>`).join('');
+
+  // Charts
+  setTimeout(()=>{
+    const top10=sorted.slice(0,10);const bot10=type==='gain'?sorted.slice(-10).reverse():[];
+    const el1=document.getElementById('rk-chart1');if(!el1)return;
+    const c1=echarts.init(el1,'dark');
+    const titles={gain:'涨幅TOP10',loss:'跌幅TOP10',vol:'成交额TOP10',tr:'换手率TOP10',mc:'市值TOP10'};
+    const vals={gain:q=>q.pct,loss:q=>q.pct,vol:q=>q.amount,tr:q=>q.tr,mc:q=>q.mc};
+    const fmts={gain:v=>v?.toFixed(2)+'%',loss:v=>v?.toFixed(2)+'%',vol:v=>fmc(v),tr:v=>v?.toFixed(2)+'%',mc:v=>fmc(v)};
+    const colors={gain:'#10b981',loss:'#ef4444',vol:'#3b82f6',tr:'#f59e0b',mc:'#8b5cf6'};
+    c1.setOption({backgroundColor:'transparent',title:{text:titles[type],textStyle:{color:'#e4eaf5',fontSize:12},left:'center'},grid:{left:'18%',right:'8%',top:'14%',bottom:'5%'},xAxis:{type:'value',axisLabel:{color:'#5a6b86',fontSize:9,formatter:v=>fmts[type](v)},splitLine:{lineStyle:{color:'#1c2d48'}}},yAxis:{type:'category',data:top10.map(q=>q.name).reverse(),axisLabel:{color:'#8899b4',fontSize:10}},series:[{type:'bar',data:top10.map(q=>vals[type](q)).reverse(),itemStyle:{color:colors[type],borderRadius:[0,4,4,0]},label:{show:true,position:'right',formatter:d=>fmts[type](d.value),color:'#8899b4',fontSize:9}}]});
+
+    const el2=document.getElementById('rk-chart2');
+    const c2=echarts.init(el2,'dark');
+    if(type==='gain'&&bot10.length){
+      c2.setOption({backgroundColor:'transparent',title:{text:'跌幅TOP10',textStyle:{color:'#e4eaf5',fontSize:12},left:'center'},grid:{left:'18%',right:'8%',top:'14%',bottom:'5%'},xAxis:{type:'value',axisLabel:{color:'#5a6b86',fontSize:9,formatter:v=>v?.toFixed(2)+'%'},splitLine:{lineStyle:{color:'#1c2d48'}}},yAxis:{type:'category',data:bot10.map(q=>q.name).reverse(),axisLabel:{color:'#8899b4',fontSize:10}},series:[{type:'bar',data:bot10.map(q=>q.pct).reverse(),itemStyle:{color:'#ef4444',borderRadius:[0,4,4,0]},label:{show:true,position:'right',formatter:d=>d.value?.toFixed(2)+'%',color:'#8899b4',fontSize:9}}]});
+    }else{
+      // 涨跌分布饼图
+      const up=Q.filter(q=>q.pct>0).length,dn=Q.filter(q=>q.pct<0).length,fl=Q.filter(q=>!q.pct||q.pct===0).length;
+      c2.setOption({backgroundColor:'transparent',title:{text:'涨跌分布',textStyle:{color:'#e4eaf5',fontSize:12},left:'center'},series:[{type:'pie',radius:['35%','65%'],center:['50%','55%'],data:[{value:up,name:'上涨 '+up,itemStyle:{color:'#10b981'}},{value:dn,name:'下跌 '+dn,itemStyle:{color:'#ef4444'}},{value:fl,name:'平盘 '+fl,itemStyle:{color:'#64748b'}}],label:{color:'#8899b4',fontSize:10}}]});
+    }
+    window.addEventListener('resize',()=>{c1.resize();c2.resize()});
+  },60);
+}
+
+// ===== DASHBOARD =====
+function renderDash(){if(!Q.length){document.getElementById('ds-stats').innerHTML='<div class="cd" style="grid-column:1/-1"><div class="es"><p>请先获取数据</p></div></div>';return}
+const s=[...Q].sort((a,b)=>(b.pct||0)-(a.pct||0)),u=Q.filter(q=>q.pct>0).length,d=Q.filter(q=>q.pct<0).length,tm=Q.reduce((s,q)=>s+(q.mc||0),0);
+document.getElementById('ds-stats').innerHTML=`<div class="cd"><div class="si bl">🏢</div><div class="cd-t">公司</div><div class="cd-v">${Q.length}</div></div><div class="cd"><div class="si gn">💰</div><div class="cd-t">总市值</div><div class="cd-v">${fmc(tm)}</div></div><div class="cd"><div class="si gn">📊</div><div class="cd-t">涨/跌</div><div class="cd-v"><span class="tg">${u}</span>/<span class="tr">${d}</span></div></div>`;
+const mkT=items=>`<table class="dt"><thead><tr><th>#</th><th>名称</th><th>现价</th><th>涨跌幅</th></tr></thead><tbody>${items.map((q,i)=>`<tr style="cursor:pointer" onclick="openD('${q.code}')"><td><span class="rank-num ${rkCls(i)}">${i+1}</span></td><td>${q.name}</td><td class="fm">${q.close?.toFixed(2)||'-'}</td><td class="fm ${cc(q.pct)}">${cs(q.pct)}${q.pct?.toFixed(2)||0}%</td></tr>`).join('')}</tbody></table>`;
+document.getElementById('t-gain').innerHTML=mkT(s.slice(0,10));document.getElementById('t-loss').innerHTML=mkT(s.slice(-10).reverse());
+setTimeout(()=>{const el=document.getElementById('mc-ch');if(!el?.offsetHeight)return;const c=echarts.init(el,'dark');c.setOption({backgroundColor:'transparent',tooltip:{formatter:d=>`${d.name}<br/>市值: ${fmc(d.value)}`},series:[{type:'treemap',data:Q.filter(q=>q.mc>0).map(q=>({name:q.name,value:q.mc,itemStyle:{color:q.pct>0?`rgba(16,185,129,${Math.min(.3+Math.abs(q.pct)/6,.9)})`:q.pct<0?`rgba(239,68,68,${Math.min(.3+Math.abs(q.pct)/6,.9)})`:'rgba(100,116,139,.4)'}})),label:{show:true,formatter:d=>`${d.name}\n${(d.value/1e8).toFixed(0)}亿`,fontSize:10,color:'#fff'},breadcrumb:{show:false}}]});window.addEventListener('resize',()=>c.resize())},80)}
+
+// ===== DETAIL =====
+function openD(code){curD=code;const q=Q.find(x=>x.code===code)||{};const s=stocks.find(x=>x.c===code)||{};
+document.getElementById('nav-detail').style.display='';nav('detail');
+document.getElementById('pt').textContent=`${q.name||s.n||code} (${code})`;
+document.getElementById('d-hd').innerHTML=`<div><div style="font-size:16px;font-weight:700">${q.name||s.n||code}</div><div style="font-size:10px;color:var(--t3)">${code} · ${s.s||''}</div></div><div style="margin-left:auto;text-align:right"><div><span style="font-size:24px;font-weight:700" class="${cc(q.pct)}">${q.close?.toFixed(2)||'-'}</span><span style="font-size:13px;font-weight:600;margin-left:8px" class="${cc(q.pct)}">${q.pct!=null?cs(q.pct)+q.pct.toFixed(2)+'%':''}</span></div><div style="display:flex;gap:12px;margin-top:2px;justify-content:flex-end;font-size:11px;color:var(--t2)"><span>市值${fmc(q.mc)}</span><span>PE${q.pe?.toFixed(1)||'-'}</span><span>换手${q.tr?.toFixed(2)||'-'}%</span></div></div>`;
+loadK()}
+
+async function loadK(klt){klt=klt||101;const el=document.getElementById('d-ct');
+el.innerHTML=`<div class="cc"><div class="sh"><span class="st">K线</span><div style="display:flex;gap:3px"><button class="btn btn-s ${klt===101?'btn-p':''}" onclick="loadK(101)">日K</button><button class="btn btn-s ${klt===102?'btn-p':''}" onclick="loadK(102)">周K</button><button class="btn btn-s ${klt===103?'btn-p':''}" onclick="loadK(103)">月K</button></div></div><div id="kch" style="width:100%;height:380px"><div class="ld"><div class="sp"></div>加载中...</div></div></div>`;
+const data=await fetchK(curD,klt);if(!data.length){document.getElementById('kch').innerHTML='<div class="es"><p>加载失败</p></div>';return}
+const c=echarts.init(document.getElementById('kch'),'dark');
+c.setOption({backgroundColor:'transparent',animation:false,tooltip:{trigger:'axis',axisPointer:{type:'cross'}},grid:[{left:'8%',right:'3%',top:'5%',height:'55%'},{left:'8%',right:'3%',top:'67%',height:'25%'}],xAxis:[{type:'category',data:data.map(d=>d.d),gridIndex:0,axisLine:{lineStyle:{color:'#1c2d48'}},axisLabel:{color:'#5a6b86',fontSize:9}},{type:'category',data:data.map(d=>d.d),gridIndex:1,axisLabel:{show:false},axisLine:{lineStyle:{color:'#1c2d48'}}}],yAxis:[{scale:true,gridIndex:0,splitLine:{lineStyle:{color:'#1c2d48'}},axisLabel:{color:'#5a6b86',fontSize:9}},{scale:true,gridIndex:1,splitLine:{show:false},axisLabel:{show:false}}],dataZoom:[{type:'inside',xAxisIndex:[0,1],start:60,end:100}],series:[{type:'candlestick',data:data.map(d=>[d.o,d.c,d.l,d.h]),xAxisIndex:0,yAxisIndex:0,itemStyle:{color:'#ef4444',color0:'#10b981',borderColor:'#ef4444',borderColor0:'#10b981'}},{type:'bar',data:data.map(d=>({value:d.v,itemStyle:{color:d.c>=d.o?'rgba(239,68,68,.35)':'rgba(16,185,129,.35)'}})),xAxisIndex:1,yAxisIndex:1}]});window.addEventListener('resize',()=>c.resize())}
+
+async function loadFin(){const el=document.getElementById('d-ct');el.innerHTML='<div class="ld"><div class="sp"></div>正在从3个接口尝试获取财务数据...</div>';
+const data=await fetchFin(curD);
+if(!data||!data.length){el.innerHTML='<div class="es"><p>财务数据加载失败</p><p style="font-size:11px;margin-top:4px;color:var(--yl)">3个数据源均未返回数据，请检查网络后重试</p><p style="font-size:11px;margin-top:8px"><button class="btn btn-s btn-p" onclick="loadFin()">🔄 重试</button></p></div>';return}
+const rv=[...data].reverse();
+el.innerHTML=`<div class="cd" style="padding:0;overflow:auto;margin-bottom:12px"><table class="dt"><thead><tr><th>报告期</th><th>营收</th><th>净利润</th><th>毛利率</th><th>ROE</th><th>负债率</th><th>营收同比</th><th>利润同比</th></tr></thead>
+<tbody>${data.map(d=>`<tr><td class="fm">${d.p}</td><td class="fm">${fmo(d.rev)}</td><td class="fm">${fmo(d.np)}</td><td class="fm">${d.gm!=null?d.gm.toFixed(1)+'%':'-'}</td><td class="fm">${d.roe!=null?d.roe.toFixed(1)+'%':'-'}</td><td class="fm">${d.dr!=null?d.dr.toFixed(1)+'%':'-'}</td><td class="fm ${cc(d.ry)}">${d.ry!=null?cs(d.ry)+d.ry.toFixed(1)+'%':'-'}</td><td class="fm ${cc(d.py)}">${d.py!=null?cs(d.py)+d.py.toFixed(1)+'%':'-'}</td></tr>`).join('')}</tbody></table></div>
+<div class="g2"><div class="cc"><div id="frc" class="cb-s"></div></div><div class="cc"><div id="fmc2" class="cb-s"></div></div></div>`;
+setTimeout(()=>{
+const rc=echarts.init(document.getElementById('frc'),'dark');rc.setOption({backgroundColor:'transparent',title:{text:'营收与净利润',textStyle:{color:'#e4eaf5',fontSize:12},left:'center'},tooltip:{trigger:'axis'},legend:{data:['营收','净利润'],bottom:0,textStyle:{color:'#5a6b86',fontSize:9}},grid:{left:'14%',right:'5%',top:'14%',bottom:'16%'},xAxis:{type:'category',data:rv.map(d=>d.p.substring(0,7)),axisLabel:{color:'#5a6b86',rotate:30,fontSize:9}},yAxis:{type:'value',axisLabel:{color:'#5a6b86',fontSize:9,formatter:v=>fmo(v)},splitLine:{lineStyle:{color:'#1c2d48'}}},series:[{name:'营收',type:'bar',data:rv.map(d=>d.rev),itemStyle:{color:'#3b82f6'}},{name:'净利润',type:'bar',data:rv.map(d=>d.np),itemStyle:{color:'#10b981'}}]});
+const mc=echarts.init(document.getElementById('fmc2'),'dark');mc.setOption({backgroundColor:'transparent',title:{text:'盈利能力',textStyle:{color:'#e4eaf5',fontSize:12},left:'center'},tooltip:{trigger:'axis'},legend:{data:['毛利率','ROE'],bottom:0,textStyle:{color:'#5a6b86',fontSize:9}},grid:{left:'10%',right:'5%',top:'14%',bottom:'16%'},xAxis:{type:'category',data:rv.map(d=>d.p.substring(0,7)),axisLabel:{color:'#5a6b86',rotate:30,fontSize:9}},yAxis:{type:'value',axisLabel:{color:'#5a6b86',fontSize:9,formatter:v=>v+'%'},splitLine:{lineStyle:{color:'#1c2d48'}}},series:[{name:'毛利率',type:'line',data:rv.map(d=>d.gm),smooth:true,itemStyle:{color:'#f59e0b'}},{name:'ROE',type:'line',data:rv.map(d=>d.roe),smooth:true,itemStyle:{color:'#8b5cf6'}}]});
+window.addEventListener('resize',()=>{rc.resize();mc.resize()})},50)}
+
+// ===== COMPARE =====
+function loadCmp(){selC.clear();const src=Q.length?Q:stocks.map(s=>({code:s.c,name:s.n}));document.getElementById('cmp-cb').innerHTML=src.map(q=>`<div class="cb" onclick="tgC(this,'${q.code}')">${q.name||q.code}</div>`).join('');document.getElementById('cmp-r').innerHTML='<div class="es"><p>选2-6家后点对比</p></div>'}
+function tgC(el,c){if(selC.has(c)){selC.delete(c);el.classList.remove('sel')}else{if(selC.size>=6)return alert('最多6家');selC.add(c);el.classList.add('sel')}}
+function runCmp(){const cs2=[...selC];if(cs2.length<2)return alert('至少2家');const qs=cs2.map(c=>Q.find(q=>q.code===c)).filter(Boolean);if(!qs.length)return alert('请先获取数据');
+document.getElementById('cmp-r').innerHTML=`<div class="cd" style="padding:0;overflow-x:auto;margin-bottom:12px"><table class="dt"><thead><tr><th>指标</th>${qs.map(q=>`<th>${q.name}</th>`).join('')}</tr></thead><tbody><tr><td style="font-weight:600">现价</td>${qs.map(q=>`<td class="fm">${q.close?.toFixed(2)||'-'}</td>`).join('')}</tr><tr><td style="font-weight:600">涨跌幅</td>${qs.map(q=>`<td class="fm ${cc(q.pct)}">${cs(q.pct)}${q.pct?.toFixed(2)||0}%</td>`).join('')}</tr><tr><td style="font-weight:600">市值</td>${qs.map(q=>`<td class="fm">${fmc(q.mc)}</td>`).join('')}</tr><tr><td style="font-weight:600">PE</td>${qs.map(q=>`<td class="fm">${q.pe?.toFixed(1)||'-'}</td>`).join('')}</tr><tr><td style="font-weight:600">换手率</td>${qs.map(q=>`<td class="fm">${q.tr?.toFixed(2)||'-'}%</td>`).join('')}</tr></tbody></table></div><div class="g2"><div class="cc"><div id="cr1" class="cb-s"></div></div><div class="cc"><div id="cr2" class="cb-s"></div></div></div>`;
+setTimeout(()=>{const ns=qs.map(q=>q.name);const c1=echarts.init(document.getElementById('cr1'),'dark');c1.setOption({backgroundColor:'transparent',title:{text:'市值对比',textStyle:{color:'#e4eaf5',fontSize:12},left:'center'},grid:{left:'15%',right:'5%',top:'14%',bottom:'12%'},xAxis:{type:'category',data:ns,axisLabel:{color:'#5a6b86',rotate:20,fontSize:9}},yAxis:{type:'value',axisLabel:{color:'#5a6b86',fontSize:9,formatter:v=>fmc(v)},splitLine:{lineStyle:{color:'#1c2d48'}}},series:[{type:'bar',data:qs.map(q=>q.mc),itemStyle:{color:'#3b82f6',borderRadius:[3,3,0,0]},label:{show:true,position:'top',formatter:d=>fmc(d.value),color:'#5a6b86',fontSize:8}}]});
+const c2=echarts.init(document.getElementById('cr2'),'dark');c2.setOption({backgroundColor:'transparent',title:{text:'涨跌幅对比',textStyle:{color:'#e4eaf5',fontSize:12},left:'center'},grid:{left:'10%',right:'5%',top:'14%',bottom:'12%'},xAxis:{type:'category',data:ns,axisLabel:{color:'#5a6b86',rotate:20,fontSize:9}},yAxis:{type:'value',axisLabel:{color:'#5a6b86',fontSize:9,formatter:v=>v+'%'},splitLine:{lineStyle:{color:'#1c2d48'}}},series:[{type:'bar',data:qs.map(q=>({value:q.pct||0,itemStyle:{color:q.pct>0?'#10b981':'#ef4444'}})),label:{show:true,position:'top',formatter:d=>d.value.toFixed(2)+'%',color:'#5a6b86',fontSize:8}}]});
+window.addEventListener('resize',()=>{c1.resize();c2.resize()})},50)}
+
+// ===== MANAGE =====
+function renderMg(){
+  const search=(document.getElementById('mg-search')?.value||'').toLowerCase().trim();
+  document.getElementById('mg-cnt').textContent=stocks.length;
+  let list=stocks;
+  if(search)list=stocks.filter(s=>(s.c||'').toLowerCase().includes(search)||(s.n||'').toLowerCase().includes(search)||(s.s||'').toLowerCase().includes(search));
+  if(!list.length){
+    document.getElementById('mg-tb').innerHTML='<tr><td colspan="4"><div class="es" style="padding:20px"><p>没有匹配的公司</p></div></td></tr>';
+    return;
+  }
+  document.getElementById('mg-tb').innerHTML=list.map(s=>`<tr><td class="fm ta">${s.c}</td><td>${s.n}</td><td>${s.s||'-'}</td><td><button class="btn btn-s btn-d" onclick="rmS('${s.c}')">删除</button></td></tr>`).join('');
+}
+function showMgTip(text,color){
+  const el=document.getElementById('mg-tip');
+  if(!el)return;
+  el.textContent=text;
+  el.style.color=color||'var(--gn)';
+  setTimeout(()=>{el.textContent=''},3000);
+}
+function rmS(c){
+  const stock=stocks.find(s=>s.c===c);
+  if(!stock)return;
+  if(confirm(`确定删除 ${stock.n}(${c})？`)){
+    stocks=stocks.filter(s=>s.c!==c);
+    if(saveStocks()){renderMg();showMgTip('✅ 已删除 '+stock.n+'，剩余'+stocks.length+'家');}
+  }
+}
+function showAdd(){document.getElementById('modal').innerHTML=`<div class="mo" onclick="if(event.target===this)clM()"><div class="md"><div class="md-t">添加公司</div><div style="margin-bottom:8px"><label style="font-size:11px;color:var(--t2)">股票代码*（输入后自动查询名称）</label><input class="inp" id="ac" placeholder="如 300760" style="width:100%;margin-top:2px" oninput="lookupStock()"><div id="ac-tip" style="font-size:10px;color:var(--t3);margin-top:3px">支持沪深A股6位代码，0/3开头是深圳，6开头是上海</div></div><div style="margin-bottom:8px"><label style="font-size:11px;color:var(--t2)">简称*</label><input class="inp" id="an" placeholder="自动填充或手动输入" style="width:100%;margin-top:2px"></div><div style="margin-bottom:8px"><label style="font-size:11px;color:var(--t2)">领域（可选）</label><input class="inp" id="as" placeholder="如 化学发光" style="width:100%;margin-top:2px"></div><div class="md-a"><button class="btn" onclick="clM()">取消</button><button class="btn btn-p" onclick="doAdd()">添加</button></div></div></div>`;setTimeout(()=>document.getElementById('ac')?.focus(),50)}
+
+let lookupTimer=null;
+function lookupStock(){
+  clearTimeout(lookupTimer);
+  const c=document.getElementById('ac')?.value.trim();
+  const tip=document.getElementById('ac-tip');
+  if(!c||!/^\d{6}$/.test(c)){if(tip)tip.textContent='请输入6位股票代码';return}
+  lookupTimer=setTimeout(async()=>{
+    if(tip)tip.textContent='🔍 查询中...';
+    try{
+      const d=await jp('https://push2.eastmoney.com/api/qt/stock/get?invt=2&fltt=2&secid='+sid(c)+'&fields=f57,f58,f43,f170',5000);
+      if(d?.data?.f58){
+        document.getElementById('an').value=d.data.f58;
+        if(tip)tip.innerHTML='✅ 找到：<span style="color:var(--gn)">'+d.data.f58+'</span> 当前价 '+(d.data.f43||'-')+' 涨跌幅 '+(d.data.f170!=null?d.data.f170+'%':'-');
+      }else{
+        if(tip)tip.innerHTML='⚠️ 未找到该代码，请确认';
+      }
+    }catch(e){if(tip)tip.textContent='查询失败：'+e.message}
+  },500);
+}
+function doAdd(){
+  const c=document.getElementById('ac').value.trim(),n=document.getElementById('an').value.trim();
+  if(!c||!n)return alert('请填代码和名称');
+  if(stocks.find(s=>s.c===c))return alert('已存在');
+  stocks.push({c,n,s:document.getElementById('as').value.trim()});
+  if(saveStocks()){clM();renderMg();showMgTip('✅ 已添加 '+n+'，共'+stocks.length+'家');}
+}
+function exportStocks(){
+  const data={version:'v3',exportTime:new Date().toISOString(),count:stocks.length,stocks:stocks};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='ivd_monitor_stocks_'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showMgTip('✅ 已导出备份文件');
+}
+function importStocks(){
+  const input=document.createElement('input');
+  input.type='file';input.accept='.json,application/json';
+  input.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=evt=>{
+      try{
+        const data=JSON.parse(evt.target.result);
+        const arr=Array.isArray(data)?data:(data.stocks||[]);
+        if(!Array.isArray(arr)||!arr.length)return alert('文件格式不正确');
+        if(!confirm(`将导入 ${arr.length} 家公司,覆盖当前列表。继续?`))return;
+        // 校验
+        const valid=arr.filter(s=>s&&s.c&&s.n);
+        if(!valid.length)return alert('未找到有效的公司数据');
+        stocks=valid;
+        if(saveStocks()){renderMg();showMgTip('✅ 已导入 '+valid.length+' 家公司');}
+      }catch(e){alert('文件解析失败: '+e.message)}
+    };
+    r.readAsText(f);
+  };
+  input.click();
+}
+function resetStocks(){
+  if(!confirm('确定恢复到默认的59家IVD公司列表?\n\n你当前的修改将丢失(建议先点"导出备份")'))return;
+  stocks=[...DEF];
+  if(saveStocks()){renderMg();showMgTip('✅ 已恢复默认列表');}
+}
+function clM(){document.getElementById('modal').innerHTML=''}
+
+// ===== ANNOUNCEMENTS (官方公告) =====
+let annCache=[];
+
+// 东方财富 官方公告接口 - 只返回上市公司在交易所发布的正式公告
+async function fetchAnnouncements(stockCode,stockName){
+  // 方案1: 东方财富公告列表接口 (JSONP)
+  try{
+    const d=await jp('https://np-anotice-stock.eastmoney.com/api/security/ann?page_size=20&page_index=1&ann_type=A&client_source=web&stock_list='+stockCode);
+    if(d?.data?.list&&d.data.list.length){
+      return d.data.list.map(item=>{
+        const codes=item.codes||[];
+        const codeInfo=codes.find(c=>c.stock_code===stockCode)||codes[0]||{};
+        return{
+          code:codeInfo.stock_code||stockCode,
+          name:codeInfo.short_name||stockName||'',
+          title:item.title||'',
+          content:'',
+          url:item.art_code?'https://data.eastmoney.com/notices/detail/'+codeInfo.stock_code+'/'+item.art_code+'.html':'',
+          pdfUrl:'',
+          date:item.display_time||(item.notice_date||'').substring(0,10),
+          source:'交易所公告',
+          type:guessAnnType(item.title||'')
+        };
+      });
+    }
+  }catch(e){console.warn('公告接口1('+stockCode+'):',e.message)}
+
+  // 方案2: 东方财富个股公告搜索 (JSONP)
+  try{
+    const mkt=stockCode.startsWith('6')?'SH':'SZ';
+    const d=await jp('https://search-api-web.eastmoney.com/search/jsonp?param=%7B%22uid%22%3A%22%22%2C%22keyword%22%3A%22'+stockCode+'%22%2C%22type%22%3A%5B%22noticeWeb%22%5D%2C%22client%22%3A%22web%22%2C%22clientType%22%3A%22web%22%2C%22clientVersion%22%3A%22curr%22%2C%22param%22%3A%7B%22noticeWeb%22%3A%7B%22searchScope%22%3A%22default%22%2C%22sort%22%3A%22default%22%2C%22pageIndex%22%3A1%2C%22pageSize%22%3A20%7D%7D%7D');
+    if(d?.result?.noticeWeb&&d.result.noticeWeb.length){
+      return d.result.noticeWeb.map(item=>({
+        code:stockCode,name:stockName||'',
+        title:(item.title||'').replace(/<[^>]+>/g,''),
+        content:'',
+        url:item.url||'',
+        pdfUrl:'',
+        date:(item.date||'').substring(0,10),
+        source:'交易所公告',
+        type:guessAnnType((item.title||''))
+      }));
+    }
+  }catch(e2){console.warn('公告接口2('+stockCode+'):',e2.message)}
+
+  // 方案3: 东方财富数据中心公告接口
+  try{
+    const d=await jp('https://datacenter-web.eastmoney.com/api/data/v1/get?reportName=RPT_CUSTOM_NOTICE&columns=NOTICE_DATE,SECURITY_CODE,SECURITY_NAME_ABBR,NOTICE_TITLE,NOTICE_CONTENT,ART_CODE,NOTICE_TYPE&filter=(SECURITY_CODE%3D%22'+stockCode+'%22)&pageNumber=1&pageSize=20&sortTypes=-1&sortColumns=NOTICE_DATE&source=WEB');
+    if(d?.result?.data){
+      return d.result.data.map(item=>({
+        code:item.SECURITY_CODE||stockCode,
+        name:item.SECURITY_NAME_ABBR||stockName||'',
+        title:item.NOTICE_TITLE||'',content:'',
+        url:item.ART_CODE?'https://data.eastmoney.com/notices/detail/'+stockCode+'/'+item.ART_CODE+'.html':'',
+        pdfUrl:'',
+        date:(item.NOTICE_DATE||'').substring(0,10),
+        source:'交易所公告',
+        type:guessAnnType(item.NOTICE_TITLE||'')
+      }));
+    }
+  }catch(e3){console.warn('公告接口3('+stockCode+'):',e3.message)}
+
+  return[];
+}
+
+function guessAnnType(title){
+  if(/年度报告|年报/.test(title))return'年报';
+  if(/半年度|半年报/.test(title))return'半年报';
+  if(/季度报告|一季|三季/.test(title))return'季报';
+  if(/业绩预告|业绩快报|业绩预增|业绩预减/.test(title))return'业绩';
+  if(/分红|派息|送股|转增|权益分派|利润分配/.test(title))return'分红';
+  if(/增持|减持|回购/.test(title))return'增减持';
+  if(/章程|议案|决议|股东大会|董事会/.test(title))return'治理';
+  if(/发行|募集|可转债|配股/.test(title))return'融资';
+  if(/关联交易|重大合同|中标|获批|注册/.test(title))return'经营';
+  if(/风险提示|立案|处罚|问询/.test(title))return'风险';
+  return'其他';
+}
+
+async function loadAnnounce(){
+  const el=document.getElementById('ann-list');
+  el.innerHTML='<div class="ld"><div class="sp"></div>正在获取全部'+stocks.length+'家IVD公司官方公告...</div>';
+  annCache=[];
+
+  // 用批量方式: stock_list支持多个代码用逗号分隔，分批请求
+  const batchSize=15; // 每批15家
+  const batches=[];
+  for(let i=0;i<stocks.length;i+=batchSize)batches.push(stocks.slice(i,i+batchSize));
+
+  let loaded=0;
+  for(const batch of batches){
+    const codeList=batch.map(s=>s.c).join(',');
+    const nameMap={};batch.forEach(s=>{nameMap[s.c]=s.n});
+
+    // 方案1: np-anotice-stock 批量接口
+    try{
+      const d=await jp('https://np-anotice-stock.eastmoney.com/api/security/ann?page_size=50&page_index=1&ann_type=A&client_source=web&stock_list='+codeList);
+      if(d?.data?.list){
+        d.data.list.forEach(item=>{
+          const codes=item.codes||[];
+          const codeInfo=codes[0]||{};
+          const sc=codeInfo.stock_code||'';
+          annCache.push({
+            code:sc,name:codeInfo.short_name||nameMap[sc]||'',
+            title:item.title||'',
+            url:item.art_code?'https://data.eastmoney.com/notices/detail/'+sc+'/'+item.art_code+'.html':'',
+            pdfUrl:'',
+            date:item.display_time||(item.notice_date||'').substring(0,10),
+            type:guessAnnType(item.title||'')
+          });
+        });
+      }
+    }catch(e){
+      // 降级: 逐个请求
+      for(const s of batch){
+        const anns=await fetchAnnouncements(s.c,s.n);
+        annCache=annCache.concat(anns);
+        await new Promise(r=>setTimeout(r,200));
+      }
+    }
+
+    loaded+=batch.length;
+    el.innerHTML=`<div class="ld"><div class="sp"></div>已查询 ${loaded}/${stocks.length} 家公司...</div>`;
+    await new Promise(r=>setTimeout(r,300));
+  }
+
+  annCache.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  // 去重(同标题+同代码)
+  const seen=new Set();
+  annCache=annCache.filter(a=>{const k=a.code+'|'+a.title;if(seen.has(k))return false;seen.add(k);return true});
+  renderAnnList();
+}
+
+function filterAnn(){renderAnnList()}
+
+function renderAnnList(){
+  const search=(document.getElementById('ann-search')?.value||'').toLowerCase();
+  const typeFilter=document.getElementById('ann-type')?.value||'';
+  let filtered=annCache;
+  if(typeFilter)filtered=filtered.filter(a=>a.type===typeFilter);
+  if(search)filtered=filtered.filter(a=>(a.name||'').toLowerCase().includes(search)||(a.title||'').toLowerCase().includes(search)||(a.code||'').includes(search));
+
+  const el=document.getElementById('ann-list');
+  if(!filtered.length){
+    el.innerHTML='<div class="es"><p>暂无公告</p><p style="font-size:11px;margin-top:4px">点击"获取"加载</p></div>';
+    return;
+  }
+
+  el.innerHTML=`<div style="font-size:11px;color:var(--t3);margin-bottom:8px">共 ${filtered.length} 条官方公告</div><div class="cd" style="padding:0;max-height:calc(100vh - 200px);overflow-y:auto">`+filtered.map(a=>`
+    <div class="ann-item" onclick="${a.url?`window.open('${a.url}','_blank')`:''}">
+      <div class="ann-title">${a.title}</div>
+      <div class="ann-meta">
+        <span class="ann-code">${a.code}</span>
+        <span style="font-weight:500">${a.name}</span>
+        <span class="ann-type-tag ann-type-${a.type}">${a.type}</span>
+        <span class="ann-date">${a.date}</span>
+        <span style="color:var(--gn);font-size:9px">📄 官方公告</span>
+        
+      </div>
+    </div>
+  `).join('')+'</div>';
+}
+
+async function loadAnnDetail(){
+  const el=document.getElementById('d-ct');
+  el.innerHTML='<div class="ld"><div class="sp"></div>加载官方公告...</div>';
+  const s=stocks.find(x=>x.c===curD)||{n:curD};
+  const anns=await fetchAnnouncements(curD,s.n);
+  if(!anns.length){el.innerHTML='<div class="es"><p>暂无官方公告</p></div>';return}
+  el.innerHTML=`<div style="font-size:11px;color:var(--t3);margin-bottom:6px">${s.n} 最近 ${anns.length} 条官方公告</div><div class="cd" style="padding:0;max-height:calc(100vh - 300px);overflow-y:auto">`+anns.map(a=>`
+    <div class="ann-item" onclick="${a.url?`window.open('${a.url}','_blank')`:''}">
+      <div class="ann-title">${a.title}</div>
+      <div class="ann-meta">
+        <span class="ann-type-tag ann-type-${a.type}">${a.type}</span>
+        <span class="ann-date">${a.date}</span>
+        
+      </div>
+    </div>
+  `).join('')+'</div>';
+}
+
+// INIT
+fetchOnce();
+</script>
+</body>
+</html>
